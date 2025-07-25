@@ -3,14 +3,15 @@ import java.io.*;
 import java.util.*;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import javax.swing.JOptionPane;
+import java.util.Collections;
+import java.util.Comparator;
+
 
 /*
 ICT711 - Java Group Project
 KOI Newcastle
 Razat Siwakoti (20032655)
-Nikesh Rajbanshi (20032595)
-Milan Bhusal (20032881)
-Umid-Asal Artikbaeva (20028085)
 */
 
 
@@ -21,18 +22,32 @@ public class EMS {
     private String actionFile; //User defined file name
 
     //Replace this with your own file path
-    private static final String originalFilePath = "C:\\Users\\razat\\Desktop\\JavaProject\\em_system\\data.csv";  //original Data file path
-    private static final String projectDirectory = "C:\\Users\\razat\\Desktop\\JavaProject\\em_system\\"; //Project folder name
+    private static final String originalFilePath = "C:\\Users\\razat\\Desktop\\JavaProject\\JavaProject\\em_system\\data.csv";  //original Data file path
+    private static final String projectDirectory = "C:\\Users\\razat\\Desktop\\JavaProject\\JavaProject\\em_system\\"; //Project folder name
 
     //Constructor to initialize the collection and scanner
     public EMS() {
         employees = new ArrayList<>();
         employeesByID = new HashMap<>();
-        scanner = new Scanner(System.in);
-
-        //Load data from default file and create action file
-        initializeData(); 
+        scanner = new Scanner(System.in); 
        }
+
+         // Getter for action file
+    public String getActionFile() {
+        return actionFile;
+    }
+
+    // Getter for employees list
+    public ArrayList<Employee> getEmployees() {
+        return employees;
+    }
+
+    // Getter for employeesByID map
+    public HashMap<String, Employee> getEmployeesByID() {
+        return employeesByID;
+    }
+
+
     
     //Initialize data by prompting for file names and loading data
     private void initializeData(){
@@ -49,40 +64,49 @@ public class EMS {
             loadRecords(originalFilePath); //Load data from default file
             saveToFile(actionFile); //Create action file with the data from the default file            
             System.out.println("Data loaded from " + originalFilePath + " and copied to " + actionFile);
-            sleep();
             }   
     
+       // Show mode selection dialog
+       public void showModeSelection() {
+        String[] options = {"GUI", "CLI"};
+        int choice = JOptionPane.showOptionDialog(
+            null,
+            "Select Interaction Mode",
+            "Employee Management System",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.INFORMATION_MESSAGE,
+            null,
+            options,
+            options[0]
+        );
+
+        if (choice == 0) {
+            // Start GUI
+            String fileName = JOptionPane.showInputDialog(null, "Enter action file name:");
+            if (fileName == null || fileName.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Action file name required. Exiting.", "Error", JOptionPane.ERROR_MESSAGE);
+                System.exit(1);
+            }
+            actionFile = projectDirectory + fileName + ".csv";
+            File originalFile = new File(originalFilePath);
+            if (!originalFile.exists()) {
+                JOptionPane.showMessageDialog(null, "Error: " + originalFilePath + " does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
+                System.exit(1);
+            }
+            loadRecords(originalFilePath);
+            saveToFile(actionFile);
+            new EMS_GUI(this);
+        } else {
+            // Start CLI
+            initializeData();
+            runCLI();
+        }  
+       }  
+        
+ 
     
-    //Display the menu to the user
-    public void displayMenu(){
-        System.out.println("------------------------");
-        System.out.println("Employee Management System");
-        System.out.println("------------------------");
-        System.out.println("1. Load records ");
-        System.out.println("2. Add a new employee");
-        System.out.println("3. Update Employee information");
-        System.out.println("4. Delete employees");
-        System.out.println("5. Query employee details");
-        System.out.println("6. Display all data");
-        System.out.println("7. Exit");
-        System.out.println("------------------------");
-        System.out.println("Enter your choice: ");
-    }
-    
-    
- // Get user choice for above menu
-    private int getUserChoice(){
-        try{
-            return Integer.parseInt(scanner.nextLine());
-        }catch(NumberFormatException e){
-            System.out.println("Invalid input. Please enter a valid number.");
-            return -1; //Return invalid choice
-        }
-    }
-    
-    
-  //Main loop for EMS that displays menu and handles user choice
-    public void run(){
+  //Main loop for CLI Mode
+    public void runCLI(){
         while(true){
             displayMenu(); //Show above display menu
             int choice = getUserChoice(); //Get user choice
@@ -100,29 +124,28 @@ public class EMS {
                         saveToFile(actionFile);
                     }
                     loadRecords(actionFile);   //Load records from csv
-                    sleep();
                     break;
                 case 2:
-                    addEmployee();   //Add a new employee
-                    sleep();
+                    addEmployee();   //Add a new employee              
                     break;
                 case 3:
-                    updateEmployee(); //Update employee information
-                    sleep();
+                    updateEmployee(); //Update employee information              
                     break;
                 case 4:
-                    deleteEmployee(); //Delete employee
-                    sleep();
+                    deleteEmployee(); //Delete employee                 
                     break;
                 case 5:
-                    queryEmployee(); //Query employee details  
-                    sleep();
+                    queryEmployee(); //Query employee details 
+             
                     break;
                 case 6:
-                	displayData(); //Display all the data
-                	sleep();
+                	displayData(); //Display all the data               
                 	break;
                 case 7:
+                    searchEmployee(); //Display all the data               
+                	break;
+
+                case 8:
                     System.out.println("Exiting program..."); 
                     scanner.close(); //to prevent resource leak
                     return; //Exit program
@@ -135,10 +158,41 @@ public class EMS {
     
     
     
+    //Display the menu to the user
+    public void displayMenu(){
+        System.out.println("------------------------");
+        System.out.println("Employee Management System");
+        System.out.println("------------------------");
+        System.out.println("1. Load records ");
+        System.out.println("2. Add a new employee");
+        System.out.println("3. Update Employee information");
+        System.out.println("4. Delete employees");
+        System.out.println("5. Query employee details");
+        System.out.println("6. Display all data");
+        System.out.println("7. Search an Employee");
+        System.out.println("8. Exit");
+        System.out.println("------------------------");
+        System.out.println("Enter your choice: ");
+    }
+    
+
+    
+ // Get user choice for above menu
+    private int getUserChoice(){
+        try{
+            return Integer.parseInt(scanner.nextLine());
+        }catch(NumberFormatException e){
+            System.out.println("Invalid input. Please enter a valid number.");
+            return -1; //Return invalid choice
+        }
+    }
+
+
+   
     
   //OPTION 1: Load records from csv file AND create action file
     //Load employee from csv file
-    private void loadRecords(String fileName){
+    public void loadRecords(String fileName){
         try{
             BufferedReader reader = new BufferedReader(new FileReader(fileName));
             employees.clear(); //Clear existing employees
@@ -211,7 +265,7 @@ public class EMS {
                     case "manager":
                     //Handle bonus for manager
                      //Bonus percentage of manager
-                    emp = new Manager(id, name, email, baseSalary, extraBenefits, performanceRating); //extraBenefits = bonus perce
+                    emp = new Manager(id, name, email, baseSalary, performanceRating, extraBenefits); //extraBenefits = bonus perce
                     break;
 
                     case "regularemployee":
@@ -248,7 +302,7 @@ public class EMS {
     
     
   //OPTION 2: Add a new employee
-    private void addEmployee(){
+  public void addEmployee(){
         try{
             //Get employee details from user
             System.out.println("Enter employee type (Manager, RegularEmployee, Intern): ");
@@ -343,7 +397,7 @@ public class EMS {
     
     
   //OPTION 3: Update employee information
-    private void updateEmployee(){
+  public void updateEmployee(){
         System.out.println("Enter employee ID to update: ");
         String id = scanner.nextLine().toUpperCase();
         //Get employee by ID
@@ -439,7 +493,7 @@ public class EMS {
     
     
  // OPTION 4: DELETE EMPLOYEE
-    private void deleteEmployee(){
+ public void deleteEmployee(){
         System.out.println("Enter employee ID: ");
         String id = scanner.nextLine().toUpperCase();
         Employee emp = getEmployeeById(id); //search by id
@@ -462,7 +516,7 @@ public class EMS {
 	
     
   //OPTION 5: QUERY EMPLOYEE
-    private void queryEmployee(){
+  public void queryEmployee(){
         System.out.println("Query options: ");
         System.out.println("1. ID");
         System.out.println("2. Name");
@@ -520,15 +574,35 @@ public class EMS {
     
     
     //OPTION 6 : DISPLAY DATA
-    private void displayData() {
+    public void displayData() {
+
+        Scanner scanner = new Scanner(System.in);
     	//Edge cases for empty dataset
     	if (employees.isEmpty()) {
     		System.out.println("No employees found in the system");
+            scanner.close();
     		return;
     	}
-    	
-    	System.out.println("\n ~~~~~~~~~ ** EMPLOYEE LIST ** ~~~~~~~~~\n ");
-    	
+        // Prompt for sorting
+        System.out.println("Sort employees by (id, name, salary)? [enter for no sorting]");
+        String sortField = scanner.nextLine().trim().toLowerCase();
+
+        // Apply sorting if a valid field is provided
+        if (!sortField.isEmpty()) {
+            if (sortField.equals("id") || sortField.equals("name") || sortField.equals("salary")) {
+                System.out.println("Sort in ascending order? (y/n) [y]");
+                String orderInput = scanner.nextLine().trim().toLowerCase();
+                boolean ascending = orderInput.isEmpty() || orderInput.equals("y");
+
+                // Sort employees
+                sortEmployees(sortField, ascending);
+            } else {
+                System.out.println("Invalid sort field. Displaying without sorting.");
+            }
+        }
+
+    	// Display sorted employees
+    	System.out.println("\n ~~~~~~~~~ ** EMPLOYEE LIST ** ~~~~~~~~~\n "); 	
     	for (Employee emp : employees) {
             System.out.println("-------------------------------------");
             System.out.println(emp);  // Using toString() method in each class
@@ -536,18 +610,65 @@ public class EMS {
         }
 
         System.out.println("\n =========== END OF LIST ============= \n ");
+        scanner.close();
     }
     
-    
+
+
+//option 7: Search Employes using Binary search
+    public void searchEmployee(){
+
+        Scanner scanner = new Scanner(System.in);
+
+    // Check for empty employee list
+    if (employees == null || employees.isEmpty()) {
+        System.out.println("No employees found in the system");
+        return;
+    }
+    // Prompt for search field
+    System.out.println("Search by (id, name)?");
+    String field = scanner.nextLine().trim().toLowerCase();
+    if (!field.equals("id") && !field.equals("name")) {
+        System.out.println("Invalid field. Use 'id' or 'name'.");
+        return;
+    }
+
+    // Prompt for search value
+    System.out.println("Enter " + field + " to search:");
+    String value = scanner.nextLine().trim();
+
+    // Perform search
+    SearchResult result = SearchResult.searchEmployees(employees, field, value);
+
+    // Display results
+    if (!result.getEmployees().isEmpty()) {
+        System.out.println("\n ~~~~~~~~~ ** SEARCH RESULTS ** ~~~~~~~~~\n ");
+        for (Employee emp : result.getEmployees()) {
+            System.out.println("-------------------------------------");
+            System.out.println("Type: " + emp.getClass().getSimpleName());
+            System.out.println("ID: " + emp.getId());
+            System.out.println("Name: " + emp.getName());
+        }
+        System.out.println("\n =========== END OF RESULTS ============= \n ");
+    }
+
+    // Display search time
+    System.out.printf("Search took %.3f ms%n", result.getTimeMs());
+}
+
+
+
+
   //Find Employee by ID using Hashmap, return null if not found
-    private Employee getEmployeeById(String id){
+  public Employee getEmployeeById(String id){
      return employeesByID.get(id); //Lookup directly in Hashmap   
     }
     
     
     
+    
   //Save employee data to csv file
-    private void saveToFile(String fileName){
+  public void saveToFile(String fileName){
      try(BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))){
          //Define headers in new csv file
          writer.write("Type,ID,Name,Email,Base Salary,Performance Rating,Extra Benefits,Total Salary\n");
@@ -581,7 +702,6 @@ public class EMS {
             		 extraBenefits,
             		 emp.calculateSalary()
             		 ));
-             writer.newLine();
          }
 
      } catch (IOException e){
@@ -590,22 +710,53 @@ public class EMS {
     }
     
     
-    //Adding sleep function to for optimization
-    public static void sleep() {
-    	try {
-    		Thread.sleep(100); //1s
-    	} catch(InterruptedException e) {
-            Thread.currentThread().interrupt(); // Restore the interrupt status
+
+    
+    // Adding sorting algorithms using Java library (Tim Sort)
+    public void sortEmployees(String field, boolean ascending) {
+        if (employees == null || employees.isEmpty()) {
+            System.out.println("No employees to sort.");
+            return;
         }
+
+        Comparator<Employee> comparator;
+        switch (field.toLowerCase()) {
+            case "id":
+                comparator = Comparator.comparing(Employee::getId, String.CASE_INSENSITIVE_ORDER);
+                break;
+            case "name":
+                comparator = Comparator.comparing(Employee::getName, String.CASE_INSENSITIVE_ORDER);
+                break;
+            case "salary":
+                comparator = Comparator.comparingDouble(Employee::getBaseSalary);
+                break;
+            case "rating":
+                comparator = Comparator.comparingDouble(emp -> emp.getPerformance().getPerformanceRating());
+                break;
+            default:
+                System.out.println("Invalid sort field: " + field + ". Use 'id', 'name', 'salary', or 'rating'.");
+                return;
+        }
+
+        // Reverse for descending order
+        if (!ascending) {
+            comparator = comparator.reversed();
+        }
+
+        // Handle null values (place at end)
+        comparator = Comparator.nullsLast(comparator);
+
+        // Sort employees using Timsort
+        Collections.sort(employees, comparator);
+        System.out.println("Employees sorted by " + field + " (" + (ascending ? "ascending" : "descending") + ")");
     }
-    
-    
     
     
   //Main program to start the EMS 
     public static void main(String[] args) {
      EMS ems = new EMS();
-     ems.run();  //Start the Program
+     ems.showModeSelection();
+
  }
     
 }
