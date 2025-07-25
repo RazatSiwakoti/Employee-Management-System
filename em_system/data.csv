@@ -1,0 +1,11 @@
+Type,ID,Name,Email,BaseSalary,PerformanceRating,"ExtraBenefits (Bonus% for Managers, allowance for regular employees and stipend for interns) "
+Manager,M001,Razat Siwakoti,razat.siwakoti05@company.com,82000,4.9,20
+Manager,M002,Umid Asal,umid.asal07@company.com,80000,4.8,15
+Manager,M003,Milan Bhusal,milanbhusal99@company.com,78000,4.5,
+Manager,M004,Nikesh Babu,nikeshnh56@company.com,75000,4.4,
+RegularEmployee,R001,Frank Green,frank.green@company.com,52000,4.1,
+RegularEmployee,R002,Jane Smith,jane.smith@company.com,50000,,10000
+Intern,I001,,david.kim@company.com,32000,3.8,3250
+Intern,I002,Grace White,grace.white@company.com,31000,,2800
+Intern,I003,Alice Johnson,(Not Provided),30000,3.5,
+RegularEmployee,R003,Bob Wilson,bob.wilson@company.com,,4.8,12.8
